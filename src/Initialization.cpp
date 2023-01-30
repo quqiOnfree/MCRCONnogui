@@ -8,6 +8,8 @@
 
 #include <Python.h>
 
+#include "Network.h"
+
 namespace MCRCON
 {
 	Initialization::Initialization(MCRCON::GlobalVariable& v)
@@ -27,6 +29,8 @@ namespace MCRCON
 	{
 		//python结束
 		Py_Finalize();
+
+		variable.MCRconIOContext.stop();
 	}
 
 	void Initialization::init()
@@ -46,8 +50,13 @@ namespace MCRCON
 		//读取./config.json
 		if (loadConfigFile())
 		{
-			reloadServer();
+			std::cout << "读取失败\n";
+			exit(-1);
 		}
+
+		reloadServer();
+
+		buildMCRCONServer(variable.MCRconIOContext, variable.MCRconAddress.port);
 
 		reloadPlugin();
 	}
@@ -182,6 +191,13 @@ namespace MCRCON
 		PyRun_SimpleString("import QQOF");
 		PyRun_SimpleString("QQOF.locLogger = QQOF.Logger()");
 		PyRun_SimpleString("QQOF.locLogger.init(os.path.join(os.getcwd(), './logs/'))");
+	}
+
+	//创建MCRCON server
+	void Initialization::buildMCRCONServer(asio::io_context& io_context, const unsigned short& serverPort)
+	{
+		MCRCON::MCRCONServer server(variable);
+		server.run(io_context, serverPort);
 	}
 
 	//加载config文件

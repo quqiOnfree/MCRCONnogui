@@ -20,7 +20,7 @@ namespace MCRCON
 
 	protected:
 		void PythonSetting();
-
+		void buildMCRCONServer(asio::io_context&, const unsigned short&);
 		int loadConfigFile();
 
 		static int loadConfig(	qjson::JObject&,
