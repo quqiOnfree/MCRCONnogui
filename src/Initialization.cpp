@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <format>
+#include <thread>
 
 #include <Python.h>
 
@@ -49,8 +50,6 @@ namespace MCRCON
 		}
 
 		reloadPlugin();
-
-		Initialization::PythonSetting();
 	}
 
 	//重新加载服务器
@@ -62,13 +61,14 @@ namespace MCRCON
 			return;
 		}
 
-		MCRCON::GlobalVariable locVariable = variable;
-		if (loadConfig(config, locVariable))
+		std::unordered_map<std::string, MCRCON::Server> servers = variable.servers;
+		auto port = variable.MCRconAddress.port;
+		if (loadConfig(config, servers, port))
 		{
 			std::cout << "读取失败\n";
 			return;
 		}
-		variable = locVariable;
+		variable.servers = servers;
 	}
 
 	//重新加载插件
@@ -181,7 +181,7 @@ namespace MCRCON
 	{
 		PyRun_SimpleString("import QQOF");
 		PyRun_SimpleString("QQOF.locLogger = QQOF.Logger()");
-		PyRun_SimpleString("QQOF.locLogger.init(os.getcwd()+'../logs/')");
+		PyRun_SimpleString("QQOF.locLogger.init(os.path.join(os.getcwd(), './logs/'))");
 	}
 
 	//加载config文件
@@ -209,25 +209,34 @@ namespace MCRCON
 		return 0;
 	}
 
-	int Initialization::loadConfig(qjson::JObject& config, MCRCON::GlobalVariable& variable)
+	int Initialization::loadConfig(qjson::JObject& config,
+		std::unordered_map<std::string, MCRCON::Server>& servers,
+		unsigned short& serverPort
+	)
 	{
 		//将config中的servers加载到内存中
 		try
 		{
-			variable.servers.clear();
+			servers.clear();
 			qjson::dict_t& dict = config["servers"].getDict();
 			for (auto i = dict.begin(); i != dict.end(); i++)
 			{
-				variable.servers[i->first].ip = i->second["ip"];
-				variable.servers[i->first].port = static_cast<unsigned short>(
+				servers[i->first].ip = i->second["ip"];
+				servers[i->first].port = static_cast<unsigned short>(
 					static_cast<int>(i->second["rconport"])
 					);
 			}
+
+			serverPort = static_cast<unsigned short>(
+				static_cast<int>(config["MCRCON"]["port"])
+				);
+			
 		}
 		catch (...)
 		{
 			return -1;
 		}
+
 		return 0;
 	}
 
@@ -239,6 +248,7 @@ namespace MCRCON
 		//示例
 		json["servers"]["lobby"]["ip"] = "127.0.0.1";
 		json["servers"]["lobby"]["rconport"] = 25575;
+		json["MCRCON"]["port"] = 2374;
 
 		json["plugin"] = "./Plugin";
 

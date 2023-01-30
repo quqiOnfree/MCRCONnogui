@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <fstream>
+#include <asio.hpp>
 
 #include "Definition.h"
 #include "Json.h"
@@ -19,8 +20,14 @@ namespace MCRCON
 
 	protected:
 		void PythonSetting();
+
 		int loadConfigFile();
-		static int loadConfig(qjson::JObject&, MCRCON::GlobalVariable&);
+
+		static int loadConfig(	qjson::JObject&,
+								std::unordered_map<std::string, MCRCON::Server>&,
+								unsigned short&
+		);
+
 		void makeConfigFile();
 
 	private:

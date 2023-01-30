@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <Python.h>
+#include <asio.hpp>
 
 namespace MCRCON
 {
@@ -23,5 +24,8 @@ namespace MCRCON
 	{
 		std::unordered_map<std::string, Server> servers;
 		std::unordered_map<std::string, Plugin> plugins;
+
+		asio::io_context						MCRconIOContext;
+		Server									MCRconAddress;
 	};
 }

@@ -28,6 +28,7 @@ file(GLOB CPP_FILES
 	"${CMAKE_SOURCE_DIR}/include/*.h"
 	"${CMAKE_SOURCE_DIR}/include/*.ixx"
 	"${CMAKE_SOURCE_DIR}/src/*.cpp"
+
 )
 
 if (MSVC)
